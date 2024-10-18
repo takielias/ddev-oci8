@@ -1,0 +1,29 @@
+ARG BASE_IMAGE
+FROM $BASE_IMAGE
+
+# Oracle instantclient
+RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y -o Dpkg::Options::="--force-confnew" --no-install-recommends --no-install-suggests gcc make autoconf libc-dev pkg-config php-pear php8.2-dev libmcrypt-dev build-essential libaio1 unzip wget
+
+# Download Oracle Instant Client packages
+RUN wget https://github.com/takielias/oracle-instantclient/raw/main/instantclient-basic-linux.x64-12.1.0.2.0.zip -O /tmp/instantclient-basic-linux.x64-12.1.0.2.0.zip && \
+    wget https://github.com/takielias/oracle-instantclient/raw/main/instantclient-sdk-linux.x64-12.1.0.2.0.zip -O /tmp/instantclient-sdk-linux.x64-12.1.0.2.0.zip
+
+RUN unzip /tmp/instantclient-basic-linux.x64-12.1.0.2.0.zip -d /usr/local/ && \
+    unzip /tmp/instantclient-sdk-linux.x64-12.1.0.2.0.zip -d /usr/local/
+
+RUN ln -s /usr/local/instantclient_12_1 /usr/local/instantclient
+RUN ln -s /usr/local/instantclient/libclntsh.so.12.1 /usr/local/instantclient/libclntsh.so
+
+RUN echo '/usr/local/instantclient'  > /etc/ld.so.conf.d/oracle-instantclient
+RUN echo '/usr/local/instantclient' >> /etc/ld.so.conf.d/x86_64-linux-gnu.conf
+
+RUN ldconfig
+
+RUN apt-get install libaio-dev -y
+
+RUN echo 'instantclient,/usr/local/instantclient' | pecl install oci8
+
+RUN apt-get clean -y
+
+# Clean up downloaded files
+RUN rm /tmp/instantclient-basic-linux.x64-12.1.0.2.0.zip /tmp/instantclient-sdk-linux.x64-12.1.0.2.0.zip
