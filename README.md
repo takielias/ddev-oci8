@@ -1,5 +1,5 @@
 ## OCi8 for ddev
 
 ```ssh
-ddev get takielias/ddev-oci8
+ddev add-on get takielias/ddev-oci8
 ```
