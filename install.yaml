@@ -1,7 +1,5 @@
 # Details about the install.yaml file are at https://ddev.readthedocs.io/en/stable/users/extend/additional-services/#sections-and-features-of-ddev-get-add-on-installyaml
-
 name: oci8
-version: 1.0.0
 
 # pre_install_actions - list of actions to run before installing the addon.
 # Examples would be removing an extraneous docker volume,
@@ -60,13 +58,10 @@ pre_install_actions:
 # If you use directories, they must be directories that are managed
 # by this add-on, or removal could remove things that are not owned by it
 project_files:
+  - docker-compose.oci8.yaml
   - php/oci8.ini
   - web-build/Dockerfile.oci8
   - web-build/install-oci8.sh
-  # - some-directory/file1.txt
-  # - some-directory/file2.txt
-  # - extra_files_dir_created_by_this_template/
-  # - somefile.sh
 
 # List of files and directories that are copied into the global .ddev directory
 # DDEV environment variables can be interpolated into these filenames
@@ -96,9 +91,6 @@ post_install_actions:
 # Files listed in project_files section will be automatically removed here if they contain #ddev-generated line.
 # removal_actions are executed in the context of the target project's .ddev directory.
 removal_actions:
-  -  rm -f ${DDEV_APPROOT}/.ddev/web-build/install-oci8.sh
-  -  rm -f ${DDEV_APPROOT}/.ddev/web-build/Dockerfile.oci8
-  -  rm -f ${DDEV_APPROOT}/.ddev/php/oci8.ini
 
   # - rm ~/.ddev/commands/web/somecommand
   # - |
