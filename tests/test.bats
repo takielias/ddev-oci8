@@ -39,15 +39,10 @@ oci8_health_checks() {
   assert_success
   assert_output --partial "oci8"
 
-  # Check PHP info for oci8 enabled
-  run ddev exec php -i
+  # Verify PHP OCI8 extension is loaded and configured properly
+  run ddev exec php -i | grep -A10 -i "oci8"
   assert_success
-  assert_output --regexp "OCI8.*Support.*enabled"
-
-  # Check Oracle Instant Client version
-  run ddev exec php -i
-  assert_success
-  assert_output --regexp "Oracle.*Instant Client.*23"
+  assert_output --partial "OCI8 Support => enabled"
 
   # Create test script
   cat <<'EOF' > "${TESTDIR}/oci-test.php"

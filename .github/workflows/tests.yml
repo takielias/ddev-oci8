@@ -6,9 +6,6 @@ on:
       - main
       - multi-architecture-support
 
-  schedule:
-  - cron: '25 08 * * *'
-
   workflow_dispatch:
     inputs:
       debug_enabled:
