@@ -1,0 +1,7 @@
+#ddev-generated
+services:
+  web:
+    # The platform statement here has no effect on AMD64/X86 systems
+    # On ARM64 (macOS Apple Silicon) it will make it work if Rosetta2 is working. The entire
+    # web container becomes amd64.
+    platform: linux/amd64
