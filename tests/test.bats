@@ -16,11 +16,11 @@ setup() {
   export TESTDIR=$(mktemp -d ~/tmp/${PROJNAME}.XXXXXX)
   export DDEV_NONINTERACTIVE=true
   export DDEV_NO_INSTRUMENTATION=true
-  
-  # Cleanup any existing project
+
+  # Cleanup existing project
   ddev delete -Oy "${PROJNAME}" >/dev/null 2>&1 || true
-  
-  # Create test project with PHP 8.2
+
+  # Init new test project
   cd "${TESTDIR}"
   run ddev config --project-name="${PROJNAME}" --project-tld=ddev.site --php-version=8.2
   assert_success
@@ -29,31 +29,31 @@ setup() {
 }
 
 oci8_health_checks() {
-  # Verify Oracle libraries are found
-  run ddev exec ldconfig -p | grep -i liboci || true
+  # Oracle libraries check
+  run ddev exec ldconfig -p
   assert_success
-  assert_output --partial "liboci"
+  assert_output --partial "libclntsh"
 
-  # Verify PHP OCI8 extension is loaded
+  # PHP extension check
   run ddev exec php -m
   assert_success
   assert_output --partial "oci8"
 
-  # Verify OCI8 extension details
-  run ddev exec php -i | grep -i "oci8.*version" || true
+  # Check PHP info for oci8 enabled
+  run ddev exec php -i
   assert_success
-  assert_output --regexp "OCI8.*enabled"
+  assert_output --regexp "OCI8.*Support.*enabled"
 
-  # Verify Instant Client version
-  run ddev exec php -i | grep -i "oracle.*version" || true
+  # Check Oracle Instant Client version
+  run ddev exec php -i
   assert_success
   assert_output --regexp "Oracle.*Instant Client.*23"
 
-  # Basic connection test (should fail but verify extension works)
-  cat <<'EOF' > ${TESTDIR}/oci-test.php
+  # Create test script
+  cat <<'EOF' > "${TESTDIR}/oci-test.php"
 <?php
 if (!extension_loaded('oci8')) {
-    die("OCI8 extension NOT loaded");
+    exit("OCI8 extension NOT loaded");
 }
 $conn = @oci_connect('test', 'test', 'localhost/XE');
 if (!$conn) {
@@ -65,7 +65,11 @@ if (!$conn) {
 }
 EOF
 
-  run ddev exec php oci-test.php
+  # Copy test file into container and run
+  ddev exec mkdir -p /var/www/html
+  docker cp "${TESTDIR}/oci-test.php" ddev-${PROJNAME}-web:/var/www/html/oci-test.php
+
+  run ddev exec php /var/www/html/oci-test.php
   assert_success
   assert_output --partial "OCI8 Test: Extension loaded but connection failed (expected)"
 }
@@ -73,7 +77,7 @@ EOF
 teardown() {
   set -eu -o pipefail
   ddev delete -Oy ${PROJNAME} >/dev/null 2>&1
-  [ "${TESTDIR}" != "" ] && rm -rf ${TESTDIR}
+  [ -n "${TESTDIR:-}" ] && rm -rf "${TESTDIR}"
 }
 
 @test "install from directory and verify oci8" {
@@ -81,9 +85,21 @@ teardown() {
   echo "# Installing OCI8 add-on from ${DIR}" >&3
   run ddev add-on get "${DIR}"
   assert_success
-  
+
   run ddev restart -y
   assert_success
-  
+
+  oci8_health_checks
+}
+
+@test "install from release and verify oci8" {
+  set -eu -o pipefail
+  echo "# Installing OCI8 add-on from GitHub release" >&3
+  run ddev add-on get "${GITHUB_REPO}"
+  assert_success
+
+  run ddev restart -y
+  assert_success
+
   oci8_health_checks
 }
