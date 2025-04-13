@@ -1,8 +1,7 @@
-#ddev-generated
-
+# ddev-generated
 ARG BASE_IMAGE
 ARG INSTANT_CLIENT_VERSION=23.7.0.25.01
-ARG DOWNLOAD_GROUP_ID=2370000
+ARG DOWNLOAD_VERSION=2370000
 ARG INSTANT_CLIENT_DIR=23_7
 ARG SO_VERSION=23.1
 
@@ -14,14 +13,23 @@ RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y \
     --no-install-recommends \
     --no-install-suggests \
     gcc make autoconf libc-dev pkg-config php-pear \
-    php${DDEV_PHP_VERSION}-dev libmcrypt-dev \
-    build-essential libaio1 unzip wget libaio-dev
+    php${DDEV_PHP_VERSION}-dev libaio1 unzip wget libaio-dev
 
-# Download Oracle Instant Client packages
-RUN wget https://download.oracle.com/otn_software/linux/instantclient/${DOWNLOAD_GROUP_ID}/instantclient-basic-linux.x64-${INSTANT_CLIENT_VERSION}.zip \
-    -O /tmp/basic.zip && \
-    wget https://download.oracle.com/otn_software/linux/instantclient/${DOWNLOAD_GROUP_ID}/instantclient-sdk-linux.x64-${INSTANT_CLIENT_VERSION}.zip \
-    -O /tmp/sdk.zip
+# Download, extract and install Oracle client in one RUN block to persist variables
+RUN if [ "$TARGETARCH" = "arm64" ]; then \
+      CLIENT_PKG="instantclient-basic-linux.arm64-${INSTANT_CLIENT_VERSION}.zip"; \
+      SDK_PKG="instantclient-sdk-linux.arm64-${INSTANT_CLIENT_VERSION}.zip"; \
+    else \
+      CLIENT_PKG="instantclient-basic-linux.x64-${INSTANT_CLIENT_VERSION}.zip"; \
+      SDK_PKG="instantclient-sdk-linux.x64-${INSTANT_CLIENT_VERSION}.zip"; \
+    fi && \
+    wget --no-check-certificate \
+      --header "Cookie: oraclelicense=accept-securebackup-cookie" \
+      https://download.oracle.com/otn_software/linux/instantclient/${DOWNLOAD_VERSION}/${CLIENT_PKG} -O /tmp/basic.zip && \
+    wget --no-check-certificate \
+      --header "Cookie: oraclelicense=accept-securebackup-cookie" \
+      https://download.oracle.com/otn_software/linux/instantclient/${DOWNLOAD_VERSION}/${SDK_PKG} -O /tmp/sdk.zip
+
 
 # Extract with forced success (ignore unzip warnings)
 RUN unzip /tmp/basic.zip -d /usr/local/ || true && \
