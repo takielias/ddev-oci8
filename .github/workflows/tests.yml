@@ -2,7 +2,9 @@ name: tests
 on:
   pull_request:
   push:
-    branches: [ main ]
+    branches: 
+      - main
+      - multi-architecture-support
 
   schedule:
   - cron: '25 08 * * *'
