@@ -61,8 +61,7 @@ project_files:
   - docker-compose.oci8.yaml
   - php/oci8.ini
   - web-build/Dockerfile.oci8
-  - web-build/install-oci8.sh
-
+  
 # List of files and directories that are copied into the global .ddev directory
 # DDEV environment variables can be interpolated into these filenames
 global_files:
