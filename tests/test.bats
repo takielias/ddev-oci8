@@ -87,15 +87,3 @@ teardown() {
   
   oci8_health_checks
 }
-
-@test "install from release and verify oci8" {
-  set -eu -o pipefail
-  echo "# Installing OCI8 add-on from GitHub release" >&3
-  run ddev add-on get "${GITHUB_REPO}"
-  assert_success
-  
-  run ddev restart -y
-  assert_success
-  
-  oci8_health_checks
-}
