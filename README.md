@@ -4,7 +4,7 @@ This add-on installs Oracle Instant Client and the PHP OCI8 extension for DDEV p
 
 ## Requirements
 
-- **DDEV** v1.23+
+- **DDEV** v1.24+
 - **PHP** 8.2 or higher
 
 ## Features
