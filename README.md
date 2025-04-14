@@ -70,7 +70,7 @@ ddev exec ldconfig -p | grep oci
 To remove the add-on:
 
 ```bash
-ddev add-on remove takielias/ddev-oci8
+ddev add-on remove oci8
 ddev restart
 ```
 
