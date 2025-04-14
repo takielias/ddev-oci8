@@ -76,7 +76,7 @@ ddev restart
 
 ## License
 
-MIT License. See [LICENSE](LICENSE) file.
+Apache 2 License. See [LICENSE](LICENSE) file.
 
 ## Contributing
 
