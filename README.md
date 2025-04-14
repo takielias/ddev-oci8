@@ -49,8 +49,7 @@ ddev php -i | grep -i "oracle.*version"
    - Verify with `ddev exec php -v`
 
 3. **ARM64 support**:
-   - Ensure you've set `DDEV_PLATFORM=linux/arm64`
-   - Confirm the version has ARM64 builds available
+   - You must use a Docker provider that supports Rosetta 2
 
 ### Debugging
 
