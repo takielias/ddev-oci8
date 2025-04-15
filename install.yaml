@@ -7,16 +7,6 @@ name: oci8
 # DDEV environment variables can be interpolated into these actions
 # pre_install_actions are executed in the context of the target project's root directory.
 pre_install_actions:
-  - |
-    #ddev-description:Check architecture type for incompatible arm64 type
-    arch="$(uname -m)"
-    os="$(uname -s)"
-
-    if [ "$os" != "Linux" ] || { [ "$arch" != "x86_64" ] && [ "$arch" != "aarch64" ]; }; then
-      echo "This package only works on Linux AMD64 or ARM64 processors."
-      exit 1
-    fi
-
 
   # - "docker volume rm ddev-${DDEV_PROJECT}_solr 2>/dev/null || true"
 
