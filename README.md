@@ -14,6 +14,9 @@ This add-on installs Oracle Instant Client and the PHP OCI8 extension for DDEV p
 - Supports both AMD64 and ARM64 architectures
 - Automatic library path configuration
 
+## Intended Usage
+
+This setup only installs the **Oracle client**, and is meant for applications (like PHP apps using OCI8) that connect to a **remote Oracle database** not for running a database server.
 
 ## Installation
 
