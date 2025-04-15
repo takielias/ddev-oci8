@@ -1,31 +1,56 @@
-#ddev-generated
-
+# ddev-generated
 ARG BASE_IMAGE
+ARG INSTANT_CLIENT_VERSION=23.7.0.25.01
+ARG DOWNLOAD_VERSION=2370000
+ARG INSTANT_CLIENT_DIR=23_7
+ARG SO_VERSION=23.1
+
 FROM $BASE_IMAGE
 
-# Oracle instantclient
-RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y -o Dpkg::Options::="--force-confnew" --no-install-recommends --no-install-suggests gcc make autoconf libc-dev pkg-config php-pear php${DDEV_PHP_VERSION}-dev libmcrypt-dev build-essential libaio1 unzip wget
+# Install dependencies
+RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y \
+    -o Dpkg::Options::="--force-confnew" \
+    --no-install-recommends \
+    --no-install-suggests \
+    gcc make autoconf libc-dev pkg-config php-pear \
+    php${DDEV_PHP_VERSION}-dev libaio1 unzip wget libaio-dev
 
-# Download Oracle Instant Client packages
-RUN wget https://github.com/takielias/oracle-instantclient/raw/main/instantclient-basic-linux.x64-12.1.0.2.0.zip -O /tmp/instantclient-basic-linux.x64-12.1.0.2.0.zip && \
-    wget https://github.com/takielias/oracle-instantclient/raw/main/instantclient-sdk-linux.x64-12.1.0.2.0.zip -O /tmp/instantclient-sdk-linux.x64-12.1.0.2.0.zip
+# Download, extract and install Oracle client in one RUN block to persist variables
+RUN if [ "$TARGETARCH" = "arm64" ]; then \
+      CLIENT_PKG="instantclient-basic-linux.arm64-${INSTANT_CLIENT_VERSION}.zip"; \
+      SDK_PKG="instantclient-sdk-linux.arm64-${INSTANT_CLIENT_VERSION}.zip"; \
+    else \
+      CLIENT_PKG="instantclient-basic-linux.x64-${INSTANT_CLIENT_VERSION}.zip"; \
+      SDK_PKG="instantclient-sdk-linux.x64-${INSTANT_CLIENT_VERSION}.zip"; \
+    fi && \
+    wget --no-check-certificate \
+      --header "Cookie: oraclelicense=accept-securebackup-cookie" \
+      https://download.oracle.com/otn_software/linux/instantclient/${DOWNLOAD_VERSION}/${CLIENT_PKG} -O /tmp/basic.zip && \
+    wget --no-check-certificate \
+      --header "Cookie: oraclelicense=accept-securebackup-cookie" \
+      https://download.oracle.com/otn_software/linux/instantclient/${DOWNLOAD_VERSION}/${SDK_PKG} -O /tmp/sdk.zip
 
-RUN unzip /tmp/instantclient-basic-linux.x64-12.1.0.2.0.zip -d /usr/local/ && \
-    unzip /tmp/instantclient-sdk-linux.x64-12.1.0.2.0.zip -d /usr/local/
 
-RUN ln -s /usr/local/instantclient_12_1 /usr/local/instantclient
-RUN ln -s /usr/local/instantclient/libclntsh.so.12.1 /usr/local/instantclient/libclntsh.so
+# Extract with forced success (ignore unzip warnings)
+RUN unzip /tmp/basic.zip -d /usr/local/ || true && \
+    unzip /tmp/sdk.zip -d /usr/local/ || true
 
-RUN echo '/usr/local/instantclient'  > /etc/ld.so.conf.d/oracle-instantclient
-RUN echo '/usr/local/instantclient' >> /etc/ld.so.conf.d/x86_64-linux-gnu.conf
+# Remove existing symlinks/directory if they exist
+RUN rm -rf /usr/local/instantclient && \
+    rm -f /usr/local/instantclient_${INSTANT_CLIENT_DIR}/libclntsh.so
 
-RUN ldconfig
+# Create correct symlinks
+RUN ln -s /usr/local/instantclient_${INSTANT_CLIENT_DIR} /usr/local/instantclient && \
+    ln -s /usr/local/instantclient/libclntsh.so.${SO_VERSION} /usr/local/instantclient/libclntsh.so
 
-RUN apt-get install libaio-dev -y
+# Configure library paths
+RUN echo '/usr/local/instantclient' > /etc/ld.so.conf.d/oracle-instantclient.conf && \
+    ldconfig
 
+# Install OCI8 PHP extension
 RUN echo 'instantclient,/usr/local/instantclient' | pecl install oci8
 
-RUN apt-get clean -y
-
-# Clean up downloaded files
-RUN rm /tmp/instantclient-basic-linux.x64-12.1.0.2.0.zip /tmp/instantclient-sdk-linux.x64-12.1.0.2.0.zip
+# Cleanup
+RUN rm -f /tmp/basic.zip /tmp/sdk.zip && \
+    apt-get clean -y && \
+    rm -rf /var/lib/apt/lists/*

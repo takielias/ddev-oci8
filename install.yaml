@@ -7,12 +7,6 @@ name: oci8
 # DDEV environment variables can be interpolated into these actions
 # pre_install_actions are executed in the context of the target project's root directory.
 pre_install_actions:
-  # - |
-  #   #ddev-description:Check architecture type for incompatible arm64 type
-  #   if [ "$(uname -m)" = "arm64" -o "$(uname -m)" = "aarch64" ]; then
-  #     echo "This package does not work on arm64 (Apple Silicon) machines";
-  #     exit 1;
-  #   fi
 
   # - "docker volume rm ddev-${DDEV_PROJECT}_solr 2>/dev/null || true"
 
@@ -58,11 +52,8 @@ pre_install_actions:
 # If you use directories, they must be directories that are managed
 # by this add-on, or removal could remove things that are not owned by it
 project_files:
-  - docker-compose.oci8.yaml
   - php/oci8.ini
   - web-build/Dockerfile.oci8
-  - web-build/install-oci8.sh
-
 # List of files and directories that are copied into the global .ddev directory
 # DDEV environment variables can be interpolated into these filenames
 global_files:
