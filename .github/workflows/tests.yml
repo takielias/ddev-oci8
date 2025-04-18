@@ -4,7 +4,6 @@ on:
   push:
     branches: 
       - main
-      - multi-architecture-support
 
   workflow_dispatch:
     inputs:
