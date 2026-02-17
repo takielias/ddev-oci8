@@ -13,10 +13,17 @@ RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y \
     --no-install-recommends \
     --no-install-suggests \
     gcc make autoconf libc-dev pkg-config php-pear \
-    php${DDEV_PHP_VERSION}-dev libaio1t64 unzip wget libaio-dev
+    php${DDEV_PHP_VERSION}-dev unzip wget libaio-dev
 
 # Symlink libaio.so.1 to libaio.so.1t64 for Oracle compatibility
-RUN ln -s /lib/aarch64-linux-gnu/libaio.so.1t64 /lib/aarch64-linux-gnu/libaio.so.1 || true
+RUN if [ "$TARGETARCH" = "arm64" ]; then \
+      LIB_DIR="/usr/lib/aarch64-linux-gnu"; \
+    else \
+      LIB_DIR="/usr/lib/x86_64-linux-gnu"; \
+    fi && \
+    if [ ! -e "$LIB_DIR/libaio.so.1" ]; then \
+      ln -s "$LIB_DIR/libaio.so.1t64" "$LIB_DIR/libaio.so.1" || true; \
+    fi
 
 # Download, extract and install Oracle client in one RUN block to persist variables
 RUN if [ "$TARGETARCH" = "arm64" ]; then \
