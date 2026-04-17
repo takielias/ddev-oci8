@@ -82,6 +82,7 @@ teardown() {
   oci8_health_checks
 }
 
+# bats test_tags=release
 @test "install from release and verify oci8" {
   set -eu -o pipefail
   echo "# Installing OCI8 add-on from GitHub release" >&3
