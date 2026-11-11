@@ -33,10 +33,10 @@ RUN if [ "$TARGETARCH" = "arm64" ]; then \
       CLIENT_PKG="instantclient-basic-linux.x64-${INSTANT_CLIENT_VERSION}.zip"; \
       SDK_PKG="instantclient-sdk-linux.x64-${INSTANT_CLIENT_VERSION}.zip"; \
     fi && \
-    wget --no-check-certificate \
+    wget \
       --header "Cookie: oraclelicense=accept-securebackup-cookie" \
       https://download.oracle.com/otn_software/linux/instantclient/${DOWNLOAD_VERSION}/${CLIENT_PKG} -O /tmp/basic.zip && \
-    wget --no-check-certificate \
+    wget \
       --header "Cookie: oraclelicense=accept-securebackup-cookie" \
       https://download.oracle.com/otn_software/linux/instantclient/${DOWNLOAD_VERSION}/${SDK_PKG} -O /tmp/sdk.zip
 
@@ -58,9 +58,14 @@ RUN echo '/usr/local/instantclient' > /etc/ld.so.conf.d/oracle-instantclient.con
     ldconfig
 
 # Install OCI8 PHP extension
-ADD https://github.com/php/pie/releases/latest/download/pie.phar /usr/local/bin/pie
-RUN chmod +x /usr/local/bin/pie \
- && pie install oci8/oci8 --skip-enable-extension \
+ADD --checksum=sha256:2ca0dff6868f1b53c095625674deef38ac698588e0a25e4321cd834a5b7553bc \
+    https://github.com/php/pie/releases/download/1.5.5/pie.phar /usr/local/bin/pie
+RUN --mount=type=secret,id=github_token \
+    chmod +x /usr/local/bin/pie \
+ && if [ -s /run/secrets/github_token ]; then \
+      export COMPOSER_AUTH="{\"github-oauth\":{\"github.com\":\"$(cat /run/secrets/github_token)\"}}"; \
+    fi \
+ && pie install oci8/oci8:3.4.1 --skip-enable-extension \
       --with-php-config=php-config${DDEV_PHP_VERSION} \
       --with-oci8=instantclient,/usr/local/instantclient
 
