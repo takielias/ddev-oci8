@@ -12,7 +12,7 @@ RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y \
     -o Dpkg::Options::="--force-confnew" \
     --no-install-recommends \
     --no-install-suggests \
-    gcc make autoconf libc-dev pkg-config php-pear \
+    gcc make autoconf libc-dev pkg-config \
     php${DDEV_PHP_VERSION}-dev unzip wget libaio-dev
 
 # Symlink libaio.so.1 to libaio.so.1t64 for Oracle compatibility
@@ -58,7 +58,11 @@ RUN echo '/usr/local/instantclient' > /etc/ld.so.conf.d/oracle-instantclient.con
     ldconfig
 
 # Install OCI8 PHP extension
-RUN echo 'instantclient,/usr/local/instantclient' | pecl install oci8
+ADD https://github.com/php/pie/releases/latest/download/pie.phar /usr/local/bin/pie
+RUN chmod +x /usr/local/bin/pie \
+ && pie install oci8/oci8 --skip-enable-extension \
+      --with-php-config=php-config${DDEV_PHP_VERSION} \
+      --with-oci8=instantclient,/usr/local/instantclient
 
 # Cleanup
 RUN rm -f /tmp/basic.zip /tmp/sdk.zip && \
